@@ -35,7 +35,8 @@ echo "----------------------"
 echo "$COMMIT_MESSAGE"
 echo "----------------------"
 
-read -n 1 -s -r -p "Press 'y' to commit with this message, any other key to abort: " key
+echo -n "Press 'y' to commit with this message, any other key to abort: "
+read -k 1 key
 echo # Move to a new line after key press
 
 if [[ $key == "y" ]]; then
