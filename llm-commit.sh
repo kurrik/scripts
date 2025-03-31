@@ -1,4 +1,5 @@
 #!/usr/bin/env zsh
+# Copyright 2025 Arne Roomann-Kurrik
 
 set -e
 
