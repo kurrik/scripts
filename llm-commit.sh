@@ -44,7 +44,9 @@ for file in $CHANGED_FILES; do
   if [[ -n "$FILE_DIFF" ]]; then
     SUMMARY_PROMPT=$(
       cat <<EOF
-Summarize the following git diff in a single line, focusing on the key changes:
+Summarize the following git diff in a single line, focusing on the key changes.
+If the diff appears to be partial, infer what you can about the type of change,
+but don't mention the incomplete context:
 
 $FILE_DIFF
 EOF
@@ -62,7 +64,7 @@ Produce a git commit message for the changes described below after the ===CHANGE
 - You MUST use the conventional commits format.
 - The summary line MUST be in the format: \`<type>(<scope>): <description>\`.
 - You MUST use one of the following types: feat, fix, docs, style, refactor, perf, test, chore.
-- You MAY include additional lines after the summary line explaining specific changes in single sentences.
+- You MAY include additional lines after the summary line explaining specific changes as single-line bullets.
 - You MUST only output the text of the git commit message, with no other formatting.
 - Use the per-file summaries to help determine the type and scope of the changes.
 
