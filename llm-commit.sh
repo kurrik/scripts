@@ -85,6 +85,7 @@ Produce a git commit message for the changes described below after the ===CHANGE
 - You MUST use one of the following types: feat, fix, docs, style, refactor, perf, test, chore.
 - You MAY include additional lines after the summary line explaining specific changes as single-line bullets.
 - You MUST only output the text of the git commit message, with no other formatting.
+- YOU MUST NOT wrap the output in backticks like \`\`\`.
 - Use the per-file summaries to help determine the type and scope of the changes.
 
 ===CHANGES===
