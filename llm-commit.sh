@@ -2,20 +2,6 @@
 
 set -e
 
-# Parse command line flags
-SHOW_PROMPT=false
-while [[ $# -gt 0 ]]; do
-  case $1 in
-  --show_prompt)
-    SHOW_PROMPT=true
-    shift
-    ;;
-  *)
-    shift
-    ;;
-  esac
-done
-
 # This script passes the staged git changes to the llm command line tool with a prompt
 # instructing it to format the changes into a conventional commit message.  Then it
 # prints the commit message to the console and waits for user confirmation via a 'y' key press.
@@ -23,10 +9,43 @@ done
 # with the formatted commit message.
 
 # Setup:
-# ```
-# ollama pull qwen2.5-coder:7b-instruct
-# llm install llm-ollama
-# ```
+# 1. Install the llm command line tool:
+#    pip install llm
+# 2. Install the Ollama backend:
+#    llm install llm-ollama
+# 3. Pull the required model:
+#    ollama pull qwen2.5-coder:7b-instruct
+#
+# Usage:
+#    git add <files>                # First stage your changes
+#    ./llm-commit.sh                # Use default model (qwen2.5-coder:7b-instruct)
+#    ./llm-commit.sh -m gemma3:27b  # Specify a different model
+#    ./llm-commit.sh --show_prompt  # Show the prompt sent to the LLM
+
+# Parse command line flags
+SHOW_PROMPT=false
+
+# Works with
+# -m gemma3:27b
+# -m qwen2.5-coder:7b-instruct
+# -m qwen2.5-coder:14b
+MODEL="qwen2.5-coder:7b-instruct"
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+  --show_prompt)
+    SHOW_PROMPT=true
+    shift
+    ;;
+  -m | --model)
+    MODEL="$2"
+    shift 2
+    ;;
+  *)
+    shift
+    ;;
+  esac
+done
 
 # Check if there are any staged changes
 if [[ -z "$(git diff --staged)" ]]; then
@@ -53,7 +72,7 @@ EOF
     )
     # Truncate to first 5000 chars if needed
     SUMMARY_PROMPT="${SUMMARY_PROMPT:0:5000}"
-    SUMMARY=$(echo "$SUMMARY_PROMPT" | llm -m qwen2.5-coder:7b-instruct)
+    SUMMARY=$(echo "$SUMMARY_PROMPT" | llm -m "$MODEL")
     FILE_SUMMARIES+="$file: $SUMMARY"$'\n'
   fi
 done
@@ -81,12 +100,7 @@ if [[ $SHOW_PROMPT == true ]]; then
   echo
 fi
 
-# Works with
-# -m gemma3:27b
-# -m qwen2.5-coder:7b-instruct
-# -m qwen2.5-coder:14b
-
-COMMIT_MESSAGE=$(echo "$CHANGES_PROMPT" | llm --usage -m qwen2.5-coder:7b-instruct)
+COMMIT_MESSAGE=$(echo "$CHANGES_PROMPT" | llm --usage -m "$MODEL")
 
 echo "Proposed commit message:"
 echo "----------------------"
