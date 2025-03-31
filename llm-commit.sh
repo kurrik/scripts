@@ -66,13 +66,6 @@ Produce a git commit message for the changes described below after the ===CHANGE
 - You MUST only output the text of the git commit message, with no other formatting.
 - Use the per-file summaries to help determine the type and scope of the changes.
 
-Example:
-
-  feat(ui): This is a one-line summary of the entire set of changes.
-
-  - This is a one-line summary of a specific change.
-  - This is another one-line summary of another part of the changes.
-
 ===CHANGES===
 $FILE_SUMMARIES
 EOF
