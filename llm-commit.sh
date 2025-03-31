@@ -6,13 +6,13 @@ set -e
 SHOW_PROMPT=false
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --show_prompt)
-      SHOW_PROMPT=true
-      shift
-      ;;
-    *)
-      shift
-      ;;
+  --show_prompt)
+    SHOW_PROMPT=true
+    shift
+    ;;
+  *)
+    shift
+    ;;
   esac
 done
 
@@ -30,17 +30,41 @@ done
 
 # Check if there are any staged changes
 if [[ -z "$(git diff --staged)" ]]; then
-    echo "No staged changes to commit."
-    exit 0
+  echo "No staged changes to commit."
+  exit 0
 fi
 
-CHANGES_PROMPT=$(cat <<EOF
-Produce a git commit message for the changes listed below after the ===CHANGES=== line.
+# Generate summaries for each changed file
+CHANGED_FILES=($(git diff --staged --name-only))
+FILE_SUMMARIES=""
+
+for file in $CHANGED_FILES; do
+  echo "Generating summary for $file..."
+  FILE_DIFF=$(git diff --staged -- "$file")
+  if [[ -n "$FILE_DIFF" ]]; then
+    SUMMARY_PROMPT=$(
+      cat <<EOF
+Summarize the following git diff in a single line, focusing on the key changes:
+
+$FILE_DIFF
+EOF
+    )
+    # Truncate to first 5000 chars if needed
+    SUMMARY_PROMPT="${SUMMARY_PROMPT:0:5000}"
+    SUMMARY=$(echo "$SUMMARY_PROMPT" | llm -m qwen2.5-coder:7b-instruct)
+    FILE_SUMMARIES+="$file: $SUMMARY"$'\n'
+  fi
+done
+
+CHANGES_PROMPT=$(
+  cat <<EOF
+Produce a git commit message for the changes described below after the ===CHANGES=== line.
 - You MUST use the conventional commits format.
 - The summary line MUST be in the format: \`<type>(<scope>): <description>\`.
 - You MUST use one of the following types: feat, fix, docs, style, refactor, perf, test, chore.
 - You MAY include additional lines after the summary line explaining specific changes in single sentences.
 - You MUST only output the text of the git commit message, with no other formatting.
+- Use the per-file summaries to help determine the type and scope of the changes.
 
 Example:
 
@@ -50,7 +74,7 @@ Example:
   - This is another one-line summary of another part of the changes.
 
 ===CHANGES===
-$(git diff --staged)
+$FILE_SUMMARIES
 EOF
 )
 
@@ -67,7 +91,7 @@ fi
 # -m qwen2.5-coder:7b-instruct
 # -m qwen2.5-coder:14b
 
-COMMIT_MESSAGE=$(echo "$CHANGES_PROMPT" | llm -m qwen2.5-coder:7b-instruct)
+COMMIT_MESSAGE=$(echo "$CHANGES_PROMPT" | llm --usage -m qwen2.5-coder:7b-instruct)
 
 echo "Proposed commit message:"
 echo "----------------------"
@@ -79,9 +103,9 @@ read -k 1 key
 echo # Move to a new line after key press
 
 if [[ $key == "y" ]]; then
-    git commit -F - <<< "$COMMIT_MESSAGE"
-    echo "Changes committed successfully!"
+  git commit -F - <<<"$COMMIT_MESSAGE"
+  echo "Changes committed successfully!"
 else
-    echo "Commit aborted."
-    exit 1
+  echo "Commit aborted."
+  exit 1
 fi
