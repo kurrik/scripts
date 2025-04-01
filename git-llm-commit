@@ -19,9 +19,13 @@ set -e
 #
 # Usage:
 #    git add <files>                # First stage your changes
-#    ./llm-commit.sh                # Use default model (qwen2.5-coder:7b-instruct)
-#    ./llm-commit.sh -m gemma3:27b  # Specify a different model
-#    ./llm-commit.sh --show_prompt  # Show the prompt sent to the LLM
+#    git llm-commit                 # Use default model (qwen2.5-coder:7b-instruct)
+#    git llm-commit -m gemma3:27b   # Specify a different model
+#    git llm-commit --show_prompt   # Show the prompt sent to the LLM
+#
+# To use as a git subcommand:
+#    1. The script must be executable
+#    2. The script must be on your PATH
 
 # Parse command line flags
 SHOW_PROMPT=false
