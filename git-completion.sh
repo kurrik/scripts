@@ -13,17 +13,14 @@
 # For example:
 #    git llm-c <TAB>
 
-_git_scripts_completion() {
+# Function to handle completion for our custom git subcommands
+_git_llm_commit() {
   local cur
   cur="${words[CURRENT]}"
 
-  # Define the subcommand.
-  # Add more subcommands as needed.
-  local subcommands="llm-commit"
-
-  # Complete subcommands.
-  COMPREPLY=($(compgen -W "${subcommands}" -- "$cur"))
+  # Define options for llm-commit subcommand
+  compadd -- --show_prompt --model
 }
 
-# Register the completion function for the git command
-complete -F _git_scripts_completion git
+# Register our custom subcommand with git's completion system
+zstyle ':completion:*:*:git:*' user-commands llm-commit:'generate commit message using LLM'
